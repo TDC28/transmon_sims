@@ -4,11 +4,30 @@ import numpy as np
 class Hamiltonian:
     n_dim: int | list[int]
     hamiltonian: qt.Qobj
-    create: qt.Qobj
-    destroy: qt.Qobj
 
-    def __add__(self, h2):
-        pass
+    def __add__(self, h):
+        if isinstance(self.n_dim, int) and isinstance(h.n_dim, int):
+            new_n_dim = [self.n_dim, h.n_dim]
+
+        elif isinstance(self.n_dim, list) and isinstance(h.n_dim, int):
+            new_n_dim = self.n_dim + [h.n_dim]
+
+
+        elif isinstance(self.n_dim, int) and isinstance(h.n_dim, list):
+            new_n_dim = [self.n_dim] + h.n_dim
+
+        else:
+            new_n_dim = self.n_dim + h.n_dim
+
+        h1 = qt.tensor(self.hamiltonian, qt.qeye(h.n_dim))
+        h2 = qt.tensor(qt.qeye(self.n_dim), h.hamiltonian)
+
+
+        new_h = __class__()
+        new_h.n_dim = new_n_dim
+        new_h.hamiltonian = h1 + h2
+
+        return new_h
 
     def get_eigen(self):
         return self.hamiltonian.eigenenergies(), self.hamiltonian.eigenstates()
@@ -80,7 +99,7 @@ class TransmonHamiltonian(Hamiltonian):
         self.hamiltonian = (np.sqrt(8 * self.ec * self.ej) - self.ec) * self.create * self.destroy - self.ec / 2 * self.create * self.create * self.destroy * self.destroy
 
 
-def ResonatorHamiltonian(Hamiltonian):
+class ResonatorHamiltonian(Hamiltonian):
     """Hamiltonian for a resonator.
 
     Parameters
