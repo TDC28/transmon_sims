@@ -17,12 +17,12 @@ if __name__ == "__main__":
         e02 = np.zeros(200, dtype=np.float64)
 
         for i, ng in enumerate(ngs):
-            # Define Ej and Ec so the qubit frequency is 5 GHz
+            # Define Ej and Ec so the qubit plasma frequency is 5 GHz
             ec = 5 / np.sqrt(8 * ratio)
             ej = ec * ratio
 
             th = CPBHamiltonian(10, ej, ec, ng)
-            evals = th.get_eigen()
+            evals, _ = th.get_eigen()
 
             e00[i] = evals[0] - evals[0]
             e01[i] = evals[1] - evals[0]
@@ -30,7 +30,7 @@ if __name__ == "__main__":
 
         plt.figure(figsize=(6, 6))
         plt.suptitle("Frequency difference for $E_0$, $E_1$, and $E_2$")
-        plt.title(f"$\\frac{{E_J}}{{E_C}} = {ratio}$, $\\omega_p = 5$ GHz")
+        plt.title(f"$\\frac{{E_J}}{{E_C}} = {ratio}$, $\\omega_p = 2 \\pi \\times 5$ GHz")
         plt.plot(ngs, e00, label="$E_{00}$")
         plt.plot(ngs, e01, label="$E_{01}$")
         plt.plot(ngs, e02, label="$E_{02}$")
