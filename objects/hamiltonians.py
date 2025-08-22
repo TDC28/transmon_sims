@@ -1,40 +1,8 @@
 import qutip as qt
 import numpy as np
 
-class Hamiltonian:
-    n_dim: int | list[int]
-    hamiltonian: qt.Qobj
-
-    def __add__(self, h):
-        if isinstance(self.n_dim, int) and isinstance(h.n_dim, int):
-            new_n_dim = [self.n_dim, h.n_dim]
-
-        elif isinstance(self.n_dim, list) and isinstance(h.n_dim, int):
-            new_n_dim = self.n_dim + [h.n_dim]
-
-
-        elif isinstance(self.n_dim, int) and isinstance(h.n_dim, list):
-            new_n_dim = [self.n_dim] + h.n_dim
-
-        else:
-            new_n_dim = self.n_dim + h.n_dim
-
-        h1 = qt.tensor(self.hamiltonian, qt.qeye(h.n_dim))
-        h2 = qt.tensor(qt.qeye(self.n_dim), h.hamiltonian)
-
-
-        new_h = __class__()
-        new_h.n_dim = new_n_dim
-        new_h.hamiltonian = h1 + h2
-
-        return new_h
-
-    def get_eigen(self):
-        return self.hamiltonian.eigenenergies(), self.hamiltonian.eigenstates()
-
-
-class CPBHamiltonian(Hamiltonian):
-    """Hamiltonian for a Cooper-pair box qubit.
+class CPB():
+    """Cooper-pair box qubit.
 
     Parameters
     ----------
@@ -65,14 +33,17 @@ class CPBHamiltonian(Hamiltonian):
     def build_hamiltonian(self):
         return 4 * self.ec * (self.ncp_op - self.ng) ** 2 - self.ej * self.cos_phase_op
 
+    def get_eigen(self):
+        return self.hamiltonian.eigenstates()
 
-class TransmonHamiltonian(Hamiltonian):
+
+class Transmon():
     """Hamiltonian for a transmon qubit. ng is removed as it is assumed Ej >> Ec.
 
     Parameters
     ----------
-    n_dim : int
-        Sets dimension of the Hilbert space.
+    n : int
+        Sets dimension of the Hilbert space to 2n+1.
     ej : flaot
         Josephson energy of the transmon qubit.
     ec : float
@@ -82,24 +53,24 @@ class TransmonHamiltonian(Hamiltonian):
     -------
     build_hamiltonian
     """
-    def __init__(self, n_dim, ej, ec):
-        self.n_dim = n_dim
+    def __init__(self, n, ej, ec):
+        self.n = n
         self.ej = ej
         self.ec = ec
-
-        self.create = qt.create(n_dim)
-        self.destroy = qt.destroy(n_dim)
-
-        # self.phase_op = (2 * ec / ej) ** (1/4) * (self.create + self.destroy)
-        # self.ncp_op = 1j / 2 * (ej / (2 * ec)) ** (1/4) * (self.create - self.destroy)
 
         self.build_hamiltonian()
 
     def build_hamiltonian(self):
-        self.hamiltonian = (np.sqrt(8 * self.ec * self.ej) - self.ec) * self.create * self.destroy - self.ec / 2 * self.create * self.create * self.destroy * self.destroy
+        charge = qt.Qobj(np.diag(np.arange(-self.n, self.n + 1)))
+        cos_phase = qt.Qobj(np.diag(np.ones(2 * self.n), 1) + np.diag(np.ones(2 * self.n), -1)) / 2
+
+        self.hamiltonian = 4 * self.ec * charge ** 2 - self.ej * cos_phase
+
+    def get_eigen(self):
+        return self.hamiltonian.eigenstates()
 
 
-class ResonatorHamiltonian(Hamiltonian):
+class ResonatorHamiltonian():
     """Hamiltonian for a resonator.
 
     Parameters

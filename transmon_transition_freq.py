@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import scienceplots
 
-from objects.hamiltonians import CPBHamiltonian
+from objects.hamiltonians import CPB
 
 plt.style.use("science")
 
@@ -21,7 +21,7 @@ if __name__ == "__main__":
             ec = 5 / np.sqrt(8 * ratio)
             ej = ec * ratio
 
-            th = CPBHamiltonian(10, ej, ec, ng)
+            th = CPB(10, ej, ec, ng)
             evals, _ = th.get_eigen()
 
             e00[i] = evals[0] - evals[0]
