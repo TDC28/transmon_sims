@@ -1,3 +1,4 @@
+"""Plots of the control of a capacitively driven transmon (https://arxiv.org/abs/2005.13165)."""
 import qutip as qt
 import numpy as np
 import matplotlib.pyplot as plt
@@ -6,9 +7,6 @@ import scienceplots
 from objects.hamiltonians import Transmon
 
 plt.style.use("science")
-
-def omega(t, args):
-    return args["Omega"]
 
 if __name__ == "__main__":
     n = 40
@@ -29,6 +27,7 @@ if __name__ == "__main__":
     plt.title(f"$\\omega_q = 5 \\text{{ GHz}}$, $\\frac{{E_J}}{{E_C}} = {int(ej / ec)}$")
     plt.xlabel("k")
     plt.ylabel("$\\left| \\Delta_k \\right| / 2 \\pi$ (MHz)")
+    plt.savefig("figs/square_pulse/detuning.png", dpi=1200)
     plt.show()
 
     n_op = qt.Qobj(np.diag(np.arange(-n, n+1)))
@@ -48,13 +47,16 @@ if __name__ == "__main__":
 
     # Driven transmon hamiltonian in RWA form
     wk = energies[:4]
-    wd = wk[1] - wk[0]
+    wd = (wk[1] - wk[0])
 
+    # Square pulse
+    rabi_freq = 0.017
     detuning_p = wk - np.arange(4) * wd
 
+    print("|0> -> |1> transition time: t =", np.pi / (rabi_freq * np.abs(n_op_eigenbasis[0, 1])), "ns")
 
-    tlist = np.linspace(0, 20, 2001)
-    transmon_rwa = qt.Qobj(np.diag(wk - np.arange(4) * wd)) + 1/2 * n_op_eigenbasis
+    tlist = np.linspace(0, 200, 4001)
+    transmon_rwa = qt.Qobj(np.diag(wk - np.arange(4) * wd)) + rabi_freq / 2 * n_op_eigenbasis
 
     plt.figure(figsize=(6, 6))
 
@@ -62,12 +64,11 @@ if __name__ == "__main__":
         result = qt.mesolve(transmon_rwa, qt.basis(4, 0), tlist, e_ops=qt.basis(4, i) @ qt.basis(4, i).dag())
 
         plt.plot(result.times, result.expect[0], label=f"$P_{i}$")
-    plt.suptitle("Control of qubit without DRAG")
-    plt.xlabel("Pulse duration")
+
+    plt.suptitle("Control of qubit (square pulse)")
+    plt.xlabel("Pulse duration (ns)")
     plt.ylabel("Probability")
     plt.legend()
+    plt.savefig("figs/square_pulse/0to1_transition.png", dpi=1200)
     plt.show()
-
-
-
 

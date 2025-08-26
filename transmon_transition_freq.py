@@ -1,3 +1,4 @@
+"""Plots of the transition frequency of a transmon with various Ej/Ec ratios (https://arxiv.org/abs/2005.12667)."""
 import numpy as np
 import matplotlib.pyplot as plt
 import scienceplots
