@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import scienceplots
 
-from objects.hamiltonians import CPB
+from objects.quantum_systems import CPB
 
 plt.style.use("science")
 
@@ -31,7 +31,7 @@ if __name__ == "__main__":
 
         plt.figure(figsize=(6, 6))
         plt.suptitle("Frequency difference for $E_0$, $E_1$, and $E_2$")
-        plt.title(f"$\\frac{{E_J}}{{E_C}} = {ratio}$, $\\omega_p = 2 \\pi \\times 5$ GHz")
+        plt.title(f"$\\frac{{E_J}}{{E_C}} = {ratio}$, $\\omega_p = 5$ GHz")
         plt.plot(ngs, e00, label="$E_{00}$")
         plt.plot(ngs, e01, label="$E_{01}$")
         plt.plot(ngs, e02, label="$E_{02}$")

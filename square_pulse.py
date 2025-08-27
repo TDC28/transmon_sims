@@ -1,10 +1,10 @@
-"""Plots of the control of a capacitively driven transmon (https://arxiv.org/abs/2005.13165)."""
+"""Plot of the control of a capacitively driven transmon with square pulses."""
 import qutip as qt
 import numpy as np
 import matplotlib.pyplot as plt
 import scienceplots
 
-from objects.hamiltonians import Transmon
+from objects.quantum_systems import Transmon
 
 plt.style.use("science")
 
@@ -15,20 +15,6 @@ if __name__ == "__main__":
 
     transmon = Transmon(ej=ej, ec=ec, n=n)
     energies, eigenstates = transmon.get_eigen()
-
-    # Plot of detuning
-    detuning_abs = []
-    for i in range(8):
-        detuning_abs.append(np.abs(energies[i] - 2 * energies[i+1] + energies[i+2]) * 1000)
-
-    plt.figure(figsize=(6, 4))
-    plt.scatter(np.arange(8), detuning_abs)
-    plt.suptitle("Detuning between the target subspace and the leakage levels in the rotating frame")
-    plt.title(f"$\\omega_q = 5 \\text{{ GHz}}$, $\\frac{{E_J}}{{E_C}} = {int(ej / ec)}$")
-    plt.xlabel("k")
-    plt.ylabel("$\\left| \\Delta_k \\right| / 2 \\pi$ (MHz)")
-    plt.savefig("figs/square_pulse/detuning.png", dpi=1200)
-    plt.show()
 
     n_op = qt.Qobj(np.diag(np.arange(-n, n+1)))
     n_op_eigenbasis = np.zeros((4, 4), dtype=np.complex128)
@@ -45,17 +31,15 @@ if __name__ == "__main__":
 
     n_op_eigenbasis = qt.Qobj(n_op_eigenbasis)
 
-    # Driven transmon hamiltonian in RWA form
     wk = energies[:4]
-    wd = (wk[1] - wk[0])
-
-    # Square pulse
-    rabi_freq = 0.017
+    wd = wk[1] - wk[0]
     detuning_p = wk - np.arange(4) * wd
 
-    print("|0> -> |1> transition time: t =", np.pi / (rabi_freq * np.abs(n_op_eigenbasis[0, 1])), "ns")
+    # Square pulse
+    tg = 100  # ns
+    rabi_freq = np.pi / (tg * np.abs(n_op_eigenbasis[0, 1]))
 
-    tlist = np.linspace(0, 200, 4001)
+    tlist = np.linspace(0, tg, 100 * tg)
     transmon_rwa = qt.Qobj(np.diag(wk - np.arange(4) * wd)) + rabi_freq / 2 * n_op_eigenbasis
 
     plt.figure(figsize=(6, 6))
@@ -65,7 +49,8 @@ if __name__ == "__main__":
 
         plt.plot(result.times, result.expect[0], label=f"$P_{i}$")
 
-    plt.suptitle("Control of qubit (square pulse)")
+    plt.suptitle("Transmon driven at $\\omega_{01}$ by a square pulse")
+    plt.title(f"$t_g = {tg}$ ns, $\\Omega (t) = {rabi_freq:.4f}$")
     plt.xlabel("Pulse duration (ns)")
     plt.ylabel("Probability")
     plt.legend()

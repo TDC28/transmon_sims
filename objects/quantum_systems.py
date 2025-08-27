@@ -1,7 +1,15 @@
 import qutip as qt
 import numpy as np
 
-class CPB():
+
+class QuantumSystem:
+    hamiltonian: qt.Qobj
+
+    def get_eigen(self):
+        return self.hamiltonian.eigenstates()
+
+
+class CPB(QuantumSystem):
     """Cooper-pair box qubit.
 
     Parameters
@@ -33,11 +41,8 @@ class CPB():
     def build_hamiltonian(self):
         return 4 * self.ec * (self.ncp_op - self.ng) ** 2 - self.ej * self.cos_phase_op
 
-    def get_eigen(self):
-        return self.hamiltonian.eigenstates()
 
-
-class Transmon():
+class Transmon(QuantumSystem):
     """Hamiltonian for a transmon qubit. ng is removed as it is assumed Ej >> Ec.
 
     Parameters
@@ -66,11 +71,8 @@ class Transmon():
 
         self.hamiltonian = 4 * self.ec * charge ** 2 - self.ej * cos_phase
 
-    def get_eigen(self):
-        return self.hamiltonian.eigenstates()
 
-
-class ResonatorHamiltonian():
+class ResonatorHamiltonian(QuantumSystem):
     """Hamiltonian for a resonator.
 
     Parameters
@@ -92,6 +94,3 @@ class ResonatorHamiltonian():
         self.destroy = qt.destroy(n_dim)
 
         self.build_hamiltonian()
-
-    def build_hamiltonian(self):
-        self.hamiltonian = self.omega_r/2 * self.create * self.destroy
