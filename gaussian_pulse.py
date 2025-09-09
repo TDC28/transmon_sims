@@ -17,10 +17,22 @@ def gaussian_pulse(t, args):
 def gaussian_pulse_area(sigma, tg):
     return  np.sqrt(2 * np.pi) * sigma * erf(tg / (2 * np.sqrt(2) * sigma))
 
+def get_gate_error(transmon_rwa_nondriven, tg, n_op_eigenbasis):
+    sigma = tg / 8
+    amp = np.pi / (gaussian_pulse_area(sigma, tg) * np.abs(n_op_eigenbasis[0, 1]))
+    drive_args = {"tg": tg, "amp": amp, "sigma": sigma}
+
+    drive_hamiltonian = [n_op_eigenbasis / 2, gaussian_pulse]
+    full_hamiltonian = [transmon_rwa_nondriven, drive_hamiltonian]
+
+    t = np.linspace(0, tg, 100 * int(tg))
+    result = qt.mesolve(full_hamiltonian, qt.basis(4, 0), t, e_ops=qt.basis(4, 1) @ qt.basis(4, 1).dag(), args=drive_args)
+    return 1 - result.expect[0][-1]
+
 if __name__ == "__main__":
     n = 40
-    ej = 34.08 # GHz
-    ec = 0.96 # GHz
+    ej = 34 # GHz
+    ec = 0.2 # GHz
 
     transmon = Transmon(ej=ej, ec=ec, n=n)
     energies, eigenstates = transmon.get_eigen()
@@ -45,7 +57,7 @@ if __name__ == "__main__":
     detuning_p = wk - np.arange(4) * wd
 
     tg = 50  # ns
-    sigma = tg / 8
+    sigma = tg / 6
     amp = np.pi / (gaussian_pulse_area(sigma, tg) * np.abs(n_op_eigenbasis[0, 1]))
 
     transmon_rwa_hamiltonian = qt.Qobj(np.diag(wk - np.arange(4) * wd))
@@ -76,5 +88,19 @@ if __name__ == "__main__":
     plt.ylabel("Probability")
     plt.legend()
     plt.savefig("figs/gaussian_pulse/0to1_transition.png", dpi=1200)
+    plt.show()
+
+    tgs = np.linspace(30, 400, 50)
+    errors = []
+    for gate_time in tgs:
+        errors.append(get_gate_error(transmon_rwa_hamiltonian, gate_time, n_op_eigenbasis))
+
+    plt.figure(figsize=(6, 6))
+    plt.plot(tgs, errors)
+    plt.suptitle("Error for a $\\pi$ gate")
+    plt.xlabel("$t_g$ [ns]")
+    plt.ylabel("Gate error")
+    plt.yscale("log")
+    plt.savefig("figs/gaussian_pulse/gate_error_vs_gate_time.png", dpi=1200)
     plt.show()
 
